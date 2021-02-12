@@ -46,7 +46,7 @@ class HTTPClient(object):
 
     def connect(self, host, port):
         """
-        connect to socket
+        connect to socket 
 
         """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -54,17 +54,20 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        
-        # return the code
+
+        # return the http status code
         return int(data.split()[1])
 
     def get_headers(self,data):
+        # return http headers
         spliter = "\r\n\r\n"
-        # print("getheader")
+        # print(":header")
         # print(data.split(spliter)[0])
+        # print("end header")
         return data.split(spliter)[0]
 
     def get_body(self, data):
+        # return body
         spliter = "\r\n\r\n"
         # print("body")
         # print(data.split(spliter)[1])
@@ -77,7 +80,9 @@ class HTTPClient(object):
         self.socket.close()
 
     # read everything from the socket
+
     def recvall(self, sock):
+        # return data received 
         buffer = bytearray()
         done = False
         while not done:
@@ -90,6 +95,7 @@ class HTTPClient(object):
 
 
     def parseURL(self,url):
+        # parse url into port, host, and path
         url_data = urllib.parse.urlparse(url) # parse url data
         temp_port = url_data.port
         
@@ -108,22 +114,6 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         # code = 500
         # body = ""
-        # begin of my code
-        # url_data = urllib.parse.urlparse(url) # parse url data
-        # temp_port = url_data.port
-        
-        # # print("port" + str(temp_port))
-        # current_host = url_data.hostname
-
-        # # print("hostname" + current_host)
-
-        # if temp_port != None:
-        #     self.port = temp_port
-
-        # temp_path = url_data.path
-        # self.path = temp_path
-        # if temp_path == "":
-        #     self.path = '/'
 
         self.parseURL(url)
 
@@ -134,6 +124,7 @@ class HTTPClient(object):
         data = self.recvall(self.socket)
         current_code = self.get_code(data)
         current_body = self.get_body(data)
+        header = self.get_headers(data)
         # print("current code" + str(current_code))
         # print("current body"+current_body)
         print("begin of GET result ----------------")
@@ -146,6 +137,7 @@ class HTTPClient(object):
         return HTTPResponse(current_code, current_body)
 
     def POST(self, url, args=None):
+        # POST the given argument(args) into the give url argument
         # code = 50
         # 0
         body = ""
@@ -163,6 +155,7 @@ class HTTPClient(object):
         data = self.recvall(self.socket)
         code = self.get_code(data)
         body = self.get_body(data)
+        header = self.get_headers(data)
         print("begin of POST result ----------------")
         print(data)
         print("end of POST result ----------------")
