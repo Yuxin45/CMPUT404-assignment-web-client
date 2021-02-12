@@ -31,8 +31,15 @@ class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
+        # self.port
+        
 
 class HTTPClient(object):
+    def __init__(self):
+        self.port = 80
+        self.path = ""
+        # self.host
+        
     #def get_host_port(self,url):
 
     def connect(self, host, port):
@@ -41,13 +48,20 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        # return the code
+        return int(data.split()[1])
 
     def get_headers(self,data):
-        return None
+        spliter = "\r\n\r\n"
+        # print("getheader")
+        # print(data.split(spliter)[0])
+        return data.split(spliter)[0]
 
     def get_body(self, data):
-        return None
+        spliter = "\r\n\r\n"
+        # print("body")
+        print(data.split(spliter)[1])
+        return data.split(spliter)[1]
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -67,14 +81,81 @@ class HTTPClient(object):
                 done = not part
         return buffer.decode('utf-8')
 
+
+    def parseURL(self,url):
+        url_data = urllib.parse.urlparse(url) # parse url data
+        temp_port = url_data.port
+        
+        # print("port" + str(temp_port))
+        self.host = url_data.hostname
+        # print("hostname" + current_host)
+
+        if temp_port != None:
+            self.port = temp_port
+
+        temp_path = url_data.path
+        self.path = temp_path
+        if temp_path == "":
+            self.path = '/'
+
     def GET(self, url, args=None):
-        code = 500
-        body = ""
-        return HTTPResponse(code, body)
+        # code = 500
+        # body = ""
+        # begin of my code
+        # url_data = urllib.parse.urlparse(url) # parse url data
+        # temp_port = url_data.port
+        
+        # # print("port" + str(temp_port))
+        # current_host = url_data.hostname
+
+        # # print("hostname" + current_host)
+
+        # if temp_port != None:
+        #     self.port = temp_port
+
+        # temp_path = url_data.path
+        # self.path = temp_path
+        # if temp_path == "":
+        #     self.path = '/'
+
+        self.parseURL(url)
+
+        header = """GET {} HTTP/1.1\r\nHOST: {}\r\nConnection: close\r\n\r\n""".format(self.path, self.host)
+
+        self.connect(self.host, self.port)
+        self.sendall(header)
+        data = self.recvall(self.socket)
+        current_code = self.get_code(data)
+        current_body = self.get_body(data)
+        # print("current code" + str(current_code))
+        # print("current body"+current_body)
+        print(data)
+
+        self.close()
+        
+
+        return HTTPResponse(current_code, current_body)
 
     def POST(self, url, args=None):
-        code = 500
+        # code = 50
+        # 0
         body = ""
+        body_len = 0
+
+        self.parseURL(url)
+        if args != None:
+            # reference for urllib.parse.urlencode:  https://stackoverflow.com/questions/40557606/how-to-url-encode-in-python-3
+            body = urllib.parse.urlencode(args)
+            body_len = len(body)
+        
+        content = """POST {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nContent-length: {}\r\n\r\n{}""".format(self.path, self.host, body_len, body)
+        self.connect(self.host, self.port)
+        self.sendall(content)
+        data = self.recvall(self.socket)
+        code = self.get_code(data)
+        body = self.get_body(data)
+        print("body: \n" + body)
+        self.close()
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
