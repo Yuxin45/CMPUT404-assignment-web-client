@@ -25,9 +25,11 @@ import re
 import urllib.parse
 
 def help():
+    
     print("httpclient.py [GET/POST] [URL]\n")
 
 class HTTPResponse(object):
+
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
@@ -43,11 +45,16 @@ class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
+        """
+        connect to socket
+
+        """
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
         return None
 
     def get_code(self, data):
+        
         # return the code
         return int(data.split()[1])
 
@@ -60,7 +67,7 @@ class HTTPClient(object):
     def get_body(self, data):
         spliter = "\r\n\r\n"
         # print("body")
-        print(data.split(spliter)[1])
+        # print(data.split(spliter)[1])
         return data.split(spliter)[1]
     
     def sendall(self, data):
@@ -129,7 +136,9 @@ class HTTPClient(object):
         current_body = self.get_body(data)
         # print("current code" + str(current_code))
         # print("current body"+current_body)
+        print("begin of GET result ----------------")
         print(data)
+        print("end of GET result ----------------")
 
         self.close()
         
@@ -148,13 +157,15 @@ class HTTPClient(object):
             body = urllib.parse.urlencode(args)
             body_len = len(body)
         
-        content = """POST {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nContent-length: {}\r\n\r\n{}""".format(self.path, self.host, body_len, body)
+        content = """POST {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-length: {}\r\n\r\n{}""".format(self.path, self.host, body_len, body)
         self.connect(self.host, self.port)
         self.sendall(content)
         data = self.recvall(self.socket)
         code = self.get_code(data)
         body = self.get_body(data)
-        print("body: \n" + body)
+        print("begin of POST result ----------------")
+        print(data)
+        print("end of POST result ----------------")
         self.close()
         return HTTPResponse(code, body)
 
